@@ -1,0 +1,43 @@
+{
+  "name": "puzzle-cat-sdk",
+  "version": "0.1.0",
+  "description": "PuzzleCat 官方 TypeScript SDK：OAuth 2.0 第三方登录 + OMI 外部管理接口（勋章发放/钱包调整/兑换码生成）",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "puzzlecat",
+    "puzzle-cat",
+    "sdk",
+    "oauth2",
+    "omi",
+    "login",
+    "typescript"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,7 +1,7 @@
 # OMI：批量运营
 
 ```typescript
-import { PuzzleCatOmiClient, PuzzleCatError } from '@/lib/ts-sdk'
+import { PuzzleCatOmiClient, PuzzleCatError } from 'puzzle-cat-sdk'
 
 const omi = new PuzzleCatOmiClient({
   baseUrl: process.env.PUZZLECAT_BASE_URL!,

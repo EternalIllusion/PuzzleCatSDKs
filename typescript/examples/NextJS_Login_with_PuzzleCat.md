@@ -4,7 +4,7 @@
 
 ```typescript
 import { NextResponse } from 'next/server'
-import { PuzzleCatOAuthClient, redirectToPuzzleCatLogin } from '@/lib/ts-sdk'
+import { PuzzleCatOAuthClient, redirectToPuzzleCatLogin } from 'puzzle-cat-sdk'
 
 export function GET() {
   // 在服务端直接生成授权 URL 返回给客户端跳转，state 写入 HttpOnly cookie
@@ -25,7 +25,7 @@ export function GET() {
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
-import { PuzzleCatOAuthClient, PuzzleCatError } from '@/lib/ts-sdk'
+import { PuzzleCatOAuthClient, PuzzleCatError } from 'puzzle-cat-sdk'
 
 const client = new PuzzleCatOAuthClient({
   baseUrl: process.env.PUZZLECAT_BASE_URL!,

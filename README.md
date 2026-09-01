@@ -4,12 +4,29 @@
 
 ## 快速开始
 
+安装 TypeScript 版：`npm install puzzle-cat-sdk`（零运行时依赖，Node ≥ 18 / 浏览器）。
+
+统一入口 `PuzzleCatClient`：一次配置、一个实例，按需启用 OAuth / OMI 模块：
+
 ```typescript
-import {
-  PuzzleCatOAuthClient,   // OAuth 2.0 登录
-  PuzzleCatOmiClient,     // OMI 外部管理接口
-  PuzzleCatError,         // 统一异常
-} from 'puzzlecat-sdk'
+import { PuzzleCatClient } from 'puzzle-cat-sdk'
+
+const client = new PuzzleCatClient({
+  baseUrl: 'https://puzzle.cat',
+  oauth: { // 仅需登录功能时传入
+    clientId: 'YOUR_APP_ID',
+    clientSecret: process.env.PUZZLECAT_CLIENT_SECRET!, // 仅服务端
+    redirectUri: 'https://your-app.com/api/auth/puzzlecat/callback',
+  },
+  omi: { // 仅需管理功能时传入
+    clientId: 'omi_YOUR_APP_ID',
+    clientSecret: process.env.PUZZLECAT_OMI_SECRET!,
+  },
+})
+
+// client.buildAuthorizeUrl / exchangeCode / refreshToken / getUserInfo ...（OAuth）
+// client.getOmiTokenInfo / awardBadge / adjustWallet / createRedeemBatch ...（OMI）
+// client.oauth / client.omi 暴露各自完整 API；也可单独使用 PuzzleCatOAuthClient / PuzzleCatOmiClient
 ```
 
 ## 使用 PuzzleCat 账号登录
@@ -25,7 +42,7 @@ import {
 浏览器端只能引导跳转，**不能**换取 Token（需要 Secret）：
 
 ```typescript
-import { PuzzleCatOAuthClient, redirectToPuzzleCatLogin, OAUTH_STATE_STORAGE_KEY } from 'puzzlecat-sdk'
+import { PuzzleCatOAuthClient, redirectToPuzzleCatLogin, OAUTH_STATE_STORAGE_KEY } from 'puzzle-cat-sdk'
 
 const oauthClient = new PuzzleCatOAuthClient({
   baseUrl: 'https://puzzle.cat',
@@ -43,7 +60,7 @@ redirectToPuzzleCatLogin(oauthClient)
 回调到达自建服务端后，解析参数、**校验 state**、换取 Token：
 
 ```typescript
-import { PuzzleCatOAuthClient, PuzzleCatError, OAUTH_STATE_STORAGE_KEY } from '@/lib/ts-sdk'
+import { PuzzleCatOAuthClient, PuzzleCatError, OAUTH_STATE_STORAGE_KEY } from 'puzzle-cat-sdk'
 
 const oauthClient = new PuzzleCatOAuthClient({
   baseUrl: process.env.PUZZLECAT_BASE_URL!,
@@ -77,7 +94,7 @@ async function handleCallback(callbackUrl: string | URL) {
 ```
 
 **关键点**：
-- `exchangeCode` / `refreshToken` / `revokeToken` 走 `/api/oauth/token`，返回**裸 OAuth JSON**；`getUserInfo` / `getTokenInfo` 返回统一包装 `{ code, message, data, timestamp }`（SDK 已解包，直接得到 `data`）。
+- `exchangeCode` / `refreshToken` 走 `/api/oauth/token`，`revokeToken` 走 `/api/oauth/token/revoke`，均返回**裸 OAuth JSON**；`getUserInfo` / `getTokenInfo` 返回统一包装 `{ code, message, data, timestamp }`（SDK 已解包，直接得到 `data`）。
 - `user.id` 为 **hashid**（如 `a1b2c3`），用作自建系统用户关联键，勿用于自增数字假设。
 - 用户被禁用时：授权页返回 403；刷新返回 `403 access_denied` 并撤销该应用下该用户全部 refresh_token。
 
@@ -103,7 +120,7 @@ OMI 面向**外部系统**提供受限管理能力：勋章发放/撤销、钱�
 ### 配置与令牌管理
 
 ```typescript
-import { PuzzleCatOmiClient } from '@/lib/ts-sdk'
+import { PuzzleCatOmiClient } from 'puzzle-cat-sdk'
 
 const omi = new PuzzleCatOmiClient({
   baseUrl: process.env.PUZZLECAT_BASE_URL!,
@@ -262,6 +279,7 @@ try {
 
 ## 示例
 
+[C#版SDK与ccxc后端改造流程](./csharp/README.md)
 [NextJS·使用PuzzleCat登录](./typescript/examples/NextJS_Login_with_PuzzleCat.md)
 [OMI批量运营](./typescript/examples/OMI_Batch_Reawrd.md)
 
