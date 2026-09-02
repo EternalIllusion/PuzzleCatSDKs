@@ -3,7 +3,7 @@
 PuzzleCat 官方 TypeScript SDK，覆盖 **OAuth 2.0 第三方登录** 与 **外部管理接口（OMI）**（勋章发放 / 钱包调整 / 兑换码生成）。
 
 - 运行环境：Node.js ≥ 18（要求原生 fetch）| 浏览器
-- 零运行时依赖，双格式输出（ESM + CJS），完整 TypeScript 类型
+- 零运行时依赖，完整 TypeScript 类型
 
 ## 安装
 
@@ -178,18 +178,21 @@ try {
 4. Token 安全存储（服务端数据库 / 密钥管理系统），勿放入 URL、勿写入日志。
 5. 生产回调必须 HTTPS。OMI 密钥只显示一次，泄漏可在后台撤销全部令牌。
 
-## 本地开发与发布
+## 本地测试
+
+请从Github克隆本仓库以使用此功能。npm发布的package不包含此功能。
+
+内置零依赖测试服务器，可完整走通 OAuth 登录流程，并用简易网页面板调用 OMI：
 
 ```bash
-npm install          # 安装依赖
-npm run typecheck    # 类型检查（静态校验）
-npm run build        # 构建 dist/（ESM + CJS + d.ts）
-npm run pack:dry     # 预览发布包内容
-npm publish          # 发布到 npm（自动执行 build）
+# 1. 复制 test/.env.example 为 test/.env 并填写站点地址与应用密钥
+# 2. 构建并启动（项目已切换 pnpm 管理，也可用 npm run build / npm run test:server）
+pnpm build
+pnpm test:server
+# 3. 打开 http://localhost:3000
 ```
 
-- 发布包仅包含 `dist/` 产物与 `package.json`（见 `files` 字段），源码与示例不入包；
-- 版本管理：修改 `package.json` 的 `version` 后执行 `npm publish`，或使用 `npm version patch|minor|major` 自动递增。
+详细步骤见 [test/README.md](./test/README.md)。
 
 ## 相关文档
 

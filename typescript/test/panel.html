@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PuzzleCat Typescript SDK</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #e3e6ea;
+    --text: #1f2329;
+    --muted: #8a919f;
+    --accent: #53e5ca;
+    --accent-dark: #00d0d0;
+    --ok: #16a34a;
+    --err: #dc2626;
+    --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  header {
+    background: linear-gradient(135deg, #24deff, hsl(161, 100%, 55%));
+    color: #fff;
+    padding: 20px 28px;
+  }
+  header h1 { margin: 0 0 4px; font-size: 20px; }
+  header .meta { font-size: 12px; opacity: .92; }
+  header .meta code { background: rgba(255,255,255,.18); padding: 1px 6px; border-radius: 4px; }
+  main { max-width: 900px; margin: 24px auto; padding: 0 16px 60px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+  }
+  .card h2 { margin: 0 0 14px; font-size: 16px; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: 2px;
+  }
+  .badge.on { background: #e8f7ee; color: var(--ok); }
+  .badge.off { background: #fdecec; color: var(--err); }
+  .notice { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .notice b { color: var(--text); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 54px; font-family: var(--mono); font-size: 12px; }
+  .field { flex: 1 1 180px; min-width: 0; }
+  button {
+    border: 0;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font: inherit;
+    cursor: pointer;
+    background: #eceef1;
+    color: var(--text);
+  }
+  button:hover { background: #e2e5ea; }
+  button.primary { background: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-dark); }
+  button.danger { background: #fdecec; color: var(--err); }
+  button.danger:hover { background: #fadcdc; }
+  button.small { padding: 4px 10px; font-size: 12px; }
+  .user-card { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+  .user-card img { width: 56px; height: 56px; border-radius: 50%; background: #f0f1f3; }
+  .user-card .name { font-size: 16px; font-weight: 600; }
+  .user-card .sub { font-size: 12px; color: var(--muted); word-break: break-all; }
+  details { border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin: 10px 0; }
+  summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+  details pre {
+    margin: 8px 0 2px;
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: #f8f9fb;
+    padding: 10px;
+    border-radius: 6px;
+  }
+  #result pre {
+    background: #0f1115;
+    color: #d7e0ea;
+    padding: 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.5;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  #result .title { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  #result .title button { margin-left: auto; }
+  .error-banner {
+    background: #fdecec;
+    color: var(--err);
+    border: 1px solid #f5c6c6;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .hidden { display: none !important; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
+  .kv { font-size: 12px; color: var(--muted); margin: 2px 0; }
+  .kv b { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PuzzleCat SDK 本地测试面板</h1>
+  <div class="meta" id="meta-bar">加载中…</div>
+</header>
+
+<main>
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- ============ OAuth 2.0 登录测试 ============ -->
+  <section class="card" id="oauth-card">
+    <h2>OAuth 2.0 登录测试 <span class="badge" id="oauth-badge">未启用</span></h2>
+    <p class="notice" id="oauth-notice"></p>
+
+    <div id="oauth-logged-out" class="hidden">
+      <div class="row">
+        <button class="primary" onclick="location.href='/api/auth/login'">使用 PuzzleCat 账号登录</button>
+      </div>
+    </div>
+
+    <div id="oauth-logged-in" class="hidden">
+      <div class="user-card">
+        <img id="user-avatar" alt="avatar">
+        <div>
+          <div class="name" id="user-nickname"></div>
+          <div class="sub" id="user-email"></div>
+          <div class="sub">id: <code id="user-id"></code></div>
+          <div class="sub" id="user-bio"></div>
+        </div>
+      </div>
+      <details>
+        <summary>查看 Token</summary>
+        <pre id="token-pre"></pre>
+      </details>
+      <div class="row">
+        <button class="primary" id="btn-refresh">刷新 Token</button>
+        <button class="danger" id="btn-revoke">撤销 Token</button>
+        <button class="danger" id="btn-logout">退出登录</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OMI 外部管理面板 ============ -->
+  <section class="card" id="omi-card">
+    <h2>OMI 外部管理面板 <span class="badge" id="omi-badge">未启用</span></h2>
+    <p class="notice" id="omi-notice"></p>
+
+    <div id="omi-disabled" class="hidden">
+      <p class="notice">在 <code>test/.env</code> 中配置 <code>PUZZLECAT_OMI_APP_ID</code> 与 <code>PUZZLECAT_OMI_SECRET</code> 后重启服务器即可使用。</p>
+    </div>
+
+    <div id="omi-enabled" class="hidden">
+      <div class="row">
+        <button class="primary" id="btn-token-info">获取 Token 信息与权限</button>
+      </div>
+
+      <hr>
+      <h3 style="margin:0 0 10px;font-size:14px;">勋章发放</h3>
+      <form id="form-award">
+        <div class="row">
+          <div class="field" style="flex-basis:100%">
+            <label>用户 ID（hashid，多个用逗号 / 换行分隔）</label>
+            <textarea name="userIds" placeholder="u_hashid_1, u_hashid_2"></textarea>
+          </div>
+          <div class="field"><label>勋章 ID（hashid）</label><input name="badgeId" placeholder="badge_hashid"></div>
+          <div class="field" style="flex:0 0 100px"><label>等级</label><input name="level" type="number" value="1" min="1"></div>
+        </div>
+        <div class="row"><button type="submit" class="primary">发放勋章</button></div>
+      </form>
+
+      <hr>
+      <h3 style="margin:0 0 10px;font-size:14px;">勋章撤销</h3>
+      <form id="form-revoke-badge">
+        <div class="row">
+          <div class="field"><label>用户 ID</label><input name="userId" placeholder="u_hashid"></div>
+          <div class="field"><label>勋章 ID</label><input name="badgeId" placeholder="badge_hashid"></div>
+          <div class="field" style="flex:0 0 120px"><label>等级（留空=全部）</label><input name="level" type="number"></div>
+        </div>
+        <div class="row"><button type="submit" class="primary">撤销勋章</button></div>
+      </form>
+
+      <hr>
+      <h3 style="margin:0 0 10px;font-size:14px;">钱包调整</h3>
+      <form id="form-wallet">
+        <div class="row">
+          <div class="field"><label>用户 ID</label><input name="userId" placeholder="u_hashid"></div>
+          <div class="field" style="flex:0 0 160px">
+            <label>货币类型</label>
+            <select name="kind">
+              <option value="cat_strips">cat_strips 猫条</option>
+              <option value="makeup_cards">makeup_cards 化妆卡</option>
+            </select>
+          </div>
+          <div class="field" style="flex:0 0 140px"><label>数量（正=增加 / 负=减少）</label><input name="amount" type="number" step="any" placeholder="5 或 -3"></div>
+          <div class="field"><label>备注</label><input name="note" placeholder="活动奖励"></div>
+        </div>
+        <div class="row"><button type="submit" class="primary">调整钱包</button></div>
+      </form>
+
+      <hr>
+      <h3 style="margin:0 0 10px;font-size:14px;">兑换码批次生成</h3>
+      <form id="form-redeem">
+        <div class="row">
+          <div class="field" style="flex:0 0 140px">
+            <label>模式</label>
+            <select name="mode">
+              <option value="unique">unique 一码一兑</option>
+              <option value="shared">shared 一码多兑</option>
+            </select>
+          </div>
+          <div class="field" style="flex:0 0 180px">
+            <label>奖励类型</label>
+            <select name="rewardKind">
+              <option value="cat_strips">cat_strips</option>
+              <option value="makeup_cards">makeup_cards</option>
+              <option value="badge">badge 勋章</option>
+            </select>
+          </div>
+          <div class="field" style="flex:0 0 140px"><label>奖励数量 / 等级</label><input name="rewardAmount" type="number" step="any" value="5"></div>
+          <div class="field" id="redeem-count-field"><label>码数量（unique）</label><input name="count" type="number" value="10" min="1"></div>
+          <div class="field hidden" id="redeem-max-field"><label>每人限兑次数（shared）</label><input name="maxRedemptions" type="number" value="1" min="1"></div>
+          <div class="field hidden" id="redeem-badge-field"><label>勋章 ID（badge 必填）</label><input name="badgeId" placeholder="badge_hashid"></div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex-basis:100%"><label>备注</label><input name="note" placeholder="直播活动兑换"></div>
+          <label style="flex:0 0 auto; display:flex; align-items:center; gap:6px; color:var(--text);">
+            <input type="checkbox" name="allowUserRepeat" style="width:auto"> 允许同一用户重复兑换
+          </label>
+        </div>
+        <div class="row"><button type="submit" class="primary">生成兑换码批次</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ 调用结果 ============ -->
+  <section class="card" id="result">
+    <div class="title">
+      <h2 style="margin:0">调用结果</h2>
+      <button class="small" id="btn-clear-result">清空</button>
+    </div>
+    <pre id="result-pre">尚无调用记录</pre>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id)
+
+// ---------- 通用 API 调用 ----------
+async function callApi(path, options = {}) {
+  const res = await fetch(path, options)
+  let json = null
+  try { json = await res.json() } catch { /* 忽略非 JSON 响应 */ }
+  if (!res.ok || !json?.ok) {
+    throw new Error(json?.error || `请求失败（HTTP ${res.status}）`)
+  }
+  return json.data
+}
+
+function showResult(data) {
+  $('result-pre').textContent = JSON.stringify(data, null, 2)
+}
+
+function showError(err) {
+  $('result-pre').textContent = '❌ ' + err.message
+}
+
+function run(fn) {
+  fn().then(showResult).catch(showError)
+}
+
+function bindForm(formId, path, onPayload) {
+  $(formId).addEventListener('submit', (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const payload = {}
+    for (const [key, value] of fd.entries()) {
+      if (value !== '') payload[key] = value
+    }
+    payload.allowUserRepeat = fd.get('allowUserRepeat') === 'on'
+    run(() => callApi(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(onPayload ? onPayload(payload) : payload),
+    }))
+  })
+}
+
+// ---------- 初始化 ----------
+async function init() {
+  // URL 错误提示（授权回调失败时回跳携带）
+  const errParam = new URLSearchParams(location.search).get('error')
+  if (errParam) {
+    const banner = $('error-banner')
+    banner.textContent = '❌ ' + errParam
+    banner.style.display = 'block'
+    history.replaceState(null, '', '/')
+  }
+
+  // 元信息与模块开关
+  const meta = await callApi('/api/meta')
+  $('meta-bar').innerHTML =
+    `站点：<code>${meta.baseUrl}</code>　|　OAuth 回调：<code>${meta.redirectUri}</code>`
+  const oauthBadge = $('oauth-badge')
+  oauthBadge.textContent = meta.oauthEnabled ? '已启用' : '未启用'
+  oauthBadge.className = 'badge ' + (meta.oauthEnabled ? 'on' : 'off')
+  if (!meta.oauthEnabled) {
+    $('oauth-notice').textContent = 'OAuth 未启用：在 test/.env 配置 PUZZLECAT_OAUTH_APP_ID（及 SECRET）后重启服务器'
+  }
+  const omiBadge = $('omi-badge')
+  omiBadge.textContent = meta.omiEnabled ? '已启用' : '未启用'
+  omiBadge.className = 'badge ' + (meta.omiEnabled ? 'on' : 'off')
+  $('omi-enabled').classList.toggle('hidden', !meta.omiEnabled)
+  $('omi-disabled').classList.toggle('hidden', meta.omiEnabled)
+
+  // 登录态
+  const session = await callApi('/api/auth/session')
+  if (session.user) {
+    $('oauth-logged-out').classList.add('hidden')
+    $('oauth-logged-in').classList.remove('hidden')
+    $('user-avatar').src = session.user.avatar
+    $('user-nickname').textContent = session.user.nickname
+    $('user-email').textContent = session.user.email
+    $('user-id').textContent = session.user.id
+    $('user-bio').textContent = session.user.bio || ''
+    $('token-pre').textContent = JSON.stringify(session.token, null, 2)
+  } else {
+    $('oauth-logged-out').classList.remove('hidden')
+  }
+
+  // OAuth 操作
+  $('btn-refresh').addEventListener('click', () => run(async () => {
+    const data = await callApi('/api/auth/refresh', { method: 'POST' })
+    const session2 = await callApi('/api/auth/session')
+    $('token-pre').textContent = JSON.stringify(session2.token, null, 2)
+    return { message: '刷新成功（refresh_token 已轮换）', ...data }
+  }))
+  $('btn-revoke').addEventListener('click', () => run(async () => {
+    const data = await callApi('/api/auth/revoke', { method: 'POST' })
+    $('oauth-logged-in').classList.add('hidden')
+    $('oauth-logged-out').classList.remove('hidden')
+    return data
+  }))
+  $('btn-logout').addEventListener('click', () => run(async () => {
+    const data = await callApi('/api/auth/logout', { method: 'POST' })
+    $('oauth-logged-in').classList.add('hidden')
+    $('oauth-logged-out').classList.remove('hidden')
+    return data
+  }))
+
+  // OMI 操作
+  $('btn-token-info').addEventListener('click', () =>
+    run(() => callApi('/api/omi/token-info')))
+  bindForm('form-award', '/api/omi/award')
+  bindForm('form-revoke-badge', '/api/omi/revoke-badge')
+  bindForm('form-wallet', '/api/omi/wallet')
+  bindForm('form-redeem', '/api/omi/redeem')
+
+  // 兑换码表单联动：模式 / 奖励类型
+  const modeSel = $('form-redeem').elements.mode
+  const rewardSel = $('form-redeem').elements.rewardKind
+  const syncRedeemForm = () => {
+    const isShared = modeSel.value === 'shared'
+    $('redeem-count-field').classList.toggle('hidden', isShared)
+    $('redeem-max-field').classList.toggle('hidden', !isShared)
+    $('redeem-badge-field').classList.toggle('hidden', rewardSel.value !== 'badge')
+  }
+  modeSel.addEventListener('change', syncRedeemForm)
+  rewardSel.addEventListener('change', syncRedeemForm)
+  syncRedeemForm()
+
+  // 清空结果
+  $('btn-clear-result').addEventListener('click', () => {
+    $('result-pre').textContent = '尚无调用记录'
+  })
+}
+
+init().catch(showError)
+</script>
+</body>
+</html>

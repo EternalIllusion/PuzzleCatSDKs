@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "PuzzleCat 官方 TypeScript SDK：OAuth 2.0 第三方登录 + OMI 外部管理接口（勋章发放/钱包调整/兑换码生成）",
   "license": "MIT",
+  "author": "EternalIllusion",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EternalIllusion/PuzzleCatSDKs.git",
+    "directory": "typescript"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -33,6 +42,7 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
+    "test:server": "node test/server.mjs",
     "prepublishOnly": "npm run build",
     "pack:dry": "npm pack --dry-run"
   },

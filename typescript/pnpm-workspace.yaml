@@ -1,0 +1,4 @@
+# pnpm 配置（pnpm 11 起配置文件从 package.json 的 pnpm 字段迁移至此）
+# 允许 esbuild 运行 postinstall 构建脚本，否则 tsup 构建会失败
+allowBuilds:
+  esbuild: true
